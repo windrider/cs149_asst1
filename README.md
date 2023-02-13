@@ -1,6 +1,4 @@
-# CS149
-
-#### 简介	
+## 简介 	
 
 ​	**stanford CS149**并行计算课程的_assignment1_，一共有6个_program lab_。
 
