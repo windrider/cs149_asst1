@@ -1,10 +1,12 @@
 ## 简介 	
 
-​	**stanford CS149**并行计算课程的_assignment1_，一共有6个_program lab_。
+​	**stanford CS149**并行计算课程的**assignment1**，一共有6个**program lab**。
 
 ​	课程网址：https://gfxcourses.stanford.edu/cs149/fall22
 
 ​	原**assignment**网址：https://github.com/stanford-cs149/asst1
+
+
 
 ## Program 1: Parallel Fractal Generation Using Threads
 
@@ -34,6 +36,8 @@ void mandelbrotSerial(
     }
 }
 ```
+
+​		
 
 ​		显然该函数是从_startRow_到_endRow_按行从上到下计算出每一行的像素点，一共有_totalRows_行。要优化这个算法，可以用多个线程执行该函数，每个线程分别计算图像的一部分，并行计算出完整的图像。
 
@@ -74,6 +78,8 @@ for (int i=0; i<numThreads; i++) {
     }
 ```
 
+​	
+
 ​	多线程并行计算的实行方法如上，初始化_numThreads_个线程，图像的总高度为_height_,令步长_step=height/numThreads_,每个工作线程从不同的 _startRow_ 开始计算_numRows_行，除最后一个线程外，每个线程要计算的_numRows=step_，但最后一个线程必须要计算完所有剩下的行数。
 
 ​	设计线程的参数结构体和线程函数_workThreadStart_,并加上计时的代码，编译运行后统计不同线程数耗费的时间，列表如下：
@@ -89,13 +95,17 @@ for (int i=0; i<numThreads; i++) {
 | 7      | 111.284      |
 | 8      | 107.583      |
 
+​	
+
 ​	发现总体趋势是线程数越多，程序的运行时间越少。但是线程数大于4以后，增加线程的优化效果就很弱了，这是因为我们的cpu只有4核，线程数超过4后就会有线程需要等待cpu资源。另外发现线程数从2到3，程序的运行时间不降反增。为了探求这个问题，打印每个线程的运行时间，由于计算运行时间的逻辑是取5次运行中耗时最小的那次，所以打印的线程情况会循环5次。
 
 ![ce15db0f840e26ef585ced3f8cf86c7](graphs/ce15db0f840e26ef585ced3f8cf86c7.png)
 
 ![269f0d7b942fa4099cb0d4f10e8df1e](/graphs/269f0d7b942fa4099cb0d4f10e8df1e.png)
 
-​	可以发现2个线程时，每个线程的运行时间是均匀的，但是3个线程时，1号线程运行时间远高于0号线程和2号线程。这是因为虽然每个线程都平均分配了_step_行，但是计算量却不一样。由于_mandelbrot_图像的特点是每个像素的亮度都和计算该像素的复杂度正相关，图像的中间远比上下两侧更亮，1号线程刚好被分配到了计算该图像的中间区域，所以计算耗时远远大于另外两个线程，也就拖慢了整体的线程运行时间。所以使用多线程并行计算时，应该尽量使每个线程的计算量均匀。
+​	
+
+​		可以发现2个线程时，每个线程的运行时间是均匀的，但是3个线程时，1号线程运行时间远高于0号线程和2号线程。这是因为虽然每个线程都平均分配了_step_行，但是计算量却不一样。由于_mandelbrot_图像的特点是每个像素的亮度都和计算该像素的复杂度正相关，图像的中间远比上下两侧更亮，1号线程刚好被分配到了计算该图像的中间区域，所以计算耗时远远大于另外两个线程，也就拖慢了整体的线程运行时间。所以使用多线程并行计算时，应该尽量使每个线程的计算量均匀。
 
 
 
@@ -104,6 +114,8 @@ for (int i=0; i<numThreads; i++) {
 ​	Program2要求用模拟的SIMD指令优化两个函数，一个是计算乘方的**clampedExpSerial**函数，另一个是计算数组和的**arraySumSerial**函数。
 
 ​	模拟的SIMD指令在**cs149intrin.h**中给出了定义。SIMD指令就是利用架构中的矢量寄存器，让一条指令能同时计算寄存器中的多个元素，达到优化目的。SIMD指令的形式和语义和汇编语言相似。	**cs149intrin.h**中用**vector<bool>**模拟了**__cs149_mask**类型，实现掩码的语义。该实验中大部分指令都有**_cs149_mask**类型的参数。只有当**__cs149_mask**中对应位为1时，SIMD指令才能在矢量寄存器的对应位置上生效。实验中发现**__cs149_mask**类型在赋值，计算和条件判断上都能发挥作用。
+
+
 
 ​	优化后的函数如下：
 
@@ -186,7 +198,9 @@ float arraySumVector(float* values, int N) {
 }
 ```
 
-​		编译后计算10000个元素的数组测试通过。
+​		
+
+​	编译后计算10000个元素的数组测试通过。
 
 ![0b1b5f838fd7de121fd7ee77abd63c2](/graphs/0b1b5f838fd7de121fd7ee77abd63c2.png)
 
@@ -221,6 +235,8 @@ export void mandelbrot_ispc(uniform float x0, uniform float y0,
 ​	![1475161285be8839dd9d16a7be6ab49](/graphs/1475161285be8839dd9d16a7be6ab49.png)
 
 ​	编译运行,发现使用ISPC使计算速度提升了5倍。
+
+
 
 ### Program 3, Part 2: ISPC Tasks 
 
@@ -276,7 +292,7 @@ export void mandelbrot_ispc_withtasks(uniform float x0, uniform float y0,
 
 ![dd7895cf13f68f25309cd6f0313c49f](/graphs/dd7895cf13f68f25309cd6f0313c49f.png)
 
-发现4个task能使速度提升为原来的13倍，8个task能使速度提升为20倍，速度提升的倍速小于理想的等比例提升，可能是由于图片上像素点的计算复杂度不是均匀的，并且切换task会产生开销。
+​	发现4个task能使速度提升为原来的13倍，8个task能使速度提升为20倍，速度提升的倍速小于理想的等比例提升，可能是由于图片上像素点的计算复杂度不是均匀的，并且切换task会产生开销。
 
 
 
@@ -317,7 +333,9 @@ void sqrtSerial(int N,
 
 ```
 
-​		这代码很显然是算倒数的平方根	
+​		这代码很显然是算倒数的平方根。
+
+
 
 #### 修改输入使原顺序计算版本的算法速度最快		
 
@@ -325,7 +343,9 @@ void sqrtSerial(int N,
 
 ![c79e8c4708e3c5a67c81951b464cedb](/graphs/c79e8c4708e3c5a67c81951b464cedb.png)
 
-​	此时使用**ISPC**和**ISPC TASK**都只能将速度提升2倍，并且是否使用**TASK**对结果影响不大
+​	此时使用**ISPC**和**ISPC TASK**都只能将速度提升2倍，并且是否使用**TASK**对结果影响不大。
+
+
 
 #### 修改输入使原顺序计算版本的算法速度最慢
 
@@ -382,6 +402,8 @@ task void saxpy_ispc_task(uniform int N,
 
 ​	 关于**TOTAL_BYTES = 4 * N * sizeof(float)**，因为写result数组的时候需要对应的内存块更新到cache中，这里有1次读内存，1次写内存，读X,Y数组的时候又有2次读取内存，所以总共和内存交互的字节数是**4 * N * sizeof(float)**;
 
+
+
 ## Program 6: Making `K-Means` Faster 
 
 ​		寻找K-Means算法的性能瓶颈，进行优化。
@@ -428,7 +450,9 @@ void computeAssignments(WorkerArgs *const args) {
 ```
 ​	发现该函数主要执行了两层循环，k遍历所有的聚类，m遍历所有的点，都每个点找到距离最近的聚类中心。由于聚类的数量并不多，可以去掉最外层循环，改用多线程的方式，每个线程负责计算所有点到某个聚类中心的距离。
 
-​	写下多线程计算所有点到聚类中心距离的算法,由于K个线程都要访问minDist，访问时加锁：	
+
+
+​		写下多线程计算所有点到聚类中心距离的算法,由于K个线程都要访问minDist，访问时加锁：	
 
 ```c++
 void computeAssignments(WorkerArgs *const args,double* minDist, std::mutex& mtx) {
