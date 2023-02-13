@@ -93,9 +93,9 @@ for (int i=0; i<numThreads; i++) {
 
 ​	发现总体趋势是线程数越多，程序的运行时间越少。但是线程数大于4以后，增加线程的优化效果就很弱了，这是因为我们的cpu只有4核，线程数超过4后就会有线程需要等待cpu资源。另外发现线程数从2到3，程序的运行时间不降反增。为了探求这个问题，打印每个线程的运行时间，由于计算运行时间的逻辑是取5次运行中耗时最小的那次，所以打印的线程情况会循环5次。
 
-![ce15db0f840e26ef585ced3f8cf86c7](.\graphs\ce15db0f840e26ef585ced3f8cf86c7.png)
+![ce15db0f840e26ef585ced3f8cf86c7](graphs/ce15db0f840e26ef585ced3f8cf86c7.png)
 
-![269f0d7b942fa4099cb0d4f10e8df1e](.\graphs\269f0d7b942fa4099cb0d4f10e8df1e.png)
+![269f0d7b942fa4099cb0d4f10e8df1e](/graphs/269f0d7b942fa4099cb0d4f10e8df1e.png)
 
 ​	可以发现2个线程时，每个线程的运行时间是均匀的，但是3个线程时，1号线程运行时间远高于0号线程和2号线程。这是因为虽然每个线程都平均分配了_step_行，但是计算量却不一样。由于_mandelbrot_图像的特点是每个像素的亮度都和计算该像素的复杂度正相关，图像的中间远比上下两侧更亮，1号线程刚好被分配到了计算该图像的中间区域，所以计算耗时远远大于另外两个线程，也就拖慢了整体的线程运行时间。所以使用多线程并行计算时，应该尽量使每个线程的计算量均匀。
 
@@ -190,7 +190,7 @@ float arraySumVector(float* values, int N) {
 
 ​		编译后计算10000个元素的数组测试通过。
 
-![0b1b5f838fd7de121fd7ee77abd63c2](.\graphs\0b1b5f838fd7de121fd7ee77abd63c2.png)
+![0b1b5f838fd7de121fd7ee77abd63c2](/graphs/0b1b5f838fd7de121fd7ee77abd63c2.png)
 
 
 
@@ -220,7 +220,7 @@ export void mandelbrot_ispc(uniform float x0, uniform float y0,
 }
 ```
 
-​	![1475161285be8839dd9d16a7be6ab49](.\graphs\1475161285be8839dd9d16a7be6ab49.png)
+​	![1475161285be8839dd9d16a7be6ab49](/graphs/1475161285be8839dd9d16a7be6ab49.png)
 
 ​	编译运行,发现使用ISPC使计算速度提升了5倍。
 
@@ -274,9 +274,9 @@ export void mandelbrot_ispc_withtasks(uniform float x0, uniform float y0,
 }
 ```
 
-![2716f4640d52d4bed66deb3f29714d6](.\graphs\2716f4640d52d4bed66deb3f29714d6.png)
+![2716f4640d52d4bed66deb3f29714d6](/graphs/2716f4640d52d4bed66deb3f29714d6.png)
 
-![dd7895cf13f68f25309cd6f0313c49f](.\graphs\dd7895cf13f68f25309cd6f0313c49f.png)
+![dd7895cf13f68f25309cd6f0313c49f](/graphs/dd7895cf13f68f25309cd6f0313c49f.png)
 
 发现4个task能使速度提升为原来的13倍，8个task能使速度提升为20倍，速度提升的倍速小于理想的等比例提升，可能是由于图片上像素点的计算复杂度不是均匀的，并且切换task会产生开销。
 
@@ -288,7 +288,7 @@ export void mandelbrot_ispc_withtasks(uniform float x0, uniform float y0,
 
 ​		比较使用**ISPC**和使用**ISPC TASK**对程序的速度提升，发现使用**ispc**将速度提升了5倍，使用**ISPC TASK**（64个task）将速度提升了18倍。
 
-![56e48af02887830d6abfe02f766bb1a](.\graphs\56e48af02887830d6abfe02f766bb1a.png)
+![56e48af02887830d6abfe02f766bb1a](/graphs/56e48af02887830d6abfe02f766bb1a.png)
 
 ​		
 
@@ -325,7 +325,7 @@ void sqrtSerial(int N,
 
 ​	很显然将两千万个输入都设为1，那么初始的**guess**值恰好就是1，不用迭代，此时的计算速度为
 
-![c79e8c4708e3c5a67c81951b464cedb](.\graphs\c79e8c4708e3c5a67c81951b464cedb.png)
+![c79e8c4708e3c5a67c81951b464cedb](/graphs/c79e8c4708e3c5a67c81951b464cedb.png)
 
 ​	此时使用**ISPC**和**ISPC TASK**都只能将速度提升2倍，并且是否使用**TASK**对结果影响不大
 
@@ -333,7 +333,7 @@ void sqrtSerial(int N,
 
 ​	很显然将两千万个输入都设为0，理论上程序会直接爆炸，但可能因为浮点数并不是完全精确的，所以最后居然能算出结果。比较使用**ISPC**和使用**ISPC TASK**对程序的速度提升，发现使用**ispc**将速度提升了7倍，使用**ISPC TASK**（64个task）将速度提升了28倍。
 
-![d76456e7e1d6a31e9002dca237951af](.\graphs\d76456e7e1d6a31e9002dca237951af.png)
+![d76456e7e1d6a31e9002dca237951af](/graphs/d76456e7e1d6a31e9002dca237951af.png)
 
 
 
@@ -341,7 +341,7 @@ void sqrtSerial(int N,
 
 另外，如果将两千万个输入都设为0.333333f,运行结果是这样的：
 
-![e15215fb54840b078bb57d29dd424e8](.\graphs\e15215fb54840b078bb57d29dd424e8.png)
+![e15215fb54840b078bb57d29dd424e8](/graphs/e15215fb54840b078bb57d29dd424e8.png)
 
 速度依然比随机输入两千万个0~3之间的数要快
 
@@ -355,7 +355,7 @@ void sqrtSerial(int N,
 
 ​		加速saxpy,即 计算`result = scale*X+Y`，编译运行使用了**ISPC**和**ISPC_TASK**机制的程序
 
-![b16747f433a84797bbb5eb391df021f](.\graphs\b16747f433a84797bbb5eb391df021f.png)
+![b16747f433a84797bbb5eb391df021f](/graphs/b16747f433a84797bbb5eb391df021f.png)
 
 ```C++
 task void saxpy_ispc_task(uniform int N,
@@ -386,13 +386,13 @@ task void saxpy_ispc_task(uniform int N,
 
 ## Program 6: Making `K-Means` Faster 
 
-​		找到K-Means算法的性能瓶颈，进行优化。
+​		寻找K-Means算法的性能瓶颈，进行优化。
 
 ​		由于实验只允许修改KmeansThread.cpp文件，对该文件下的每个函数都计时输出：
 
-![7db313149006f73fdd8b69c5867ad73](.\graphs\7db313149006f73fdd8b69c5867ad73.png )
+![7db313149006f73fdd8b69c5867ad73](/graphs/7db313149006f73fdd8b69c5867ad73.png )
 
-![46d6290a9c9821558f1d69478f6ec10](.\graphs\46d6290a9c9821558f1d69478f6ec10.png)
+![46d6290a9c9821558f1d69478f6ec10](/graphs/46d6290a9c9821558f1d69478f6ec10.png)
 
    		 
 
@@ -478,6 +478,6 @@ void computeAssignmentsThreads (WorkerArgs &args){
 
 再次编译运行：
 
-![c8a6b81132822ecf83e7074c56f618e](.\graphs\c8a6b81132822ecf83e7074c56f618e.png)
+![c8a6b81132822ecf83e7074c56f618e](/graphs/c8a6b81132822ecf83e7074c56f618e.png)
 
 总耗时缩短到8s，和之前的10s相比优化效果并不明显，一个原因是最后只有3个聚类中心，线程数不够多，不能完全发挥多线程的优势。另外频繁地加锁解锁导致线程阻塞，影响性能。
