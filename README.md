@@ -210,7 +210,7 @@ float arraySumVector(float* values, int N) {
 
 ### Program 3, Part 1. A Few ISPC Basics 
 
-​	使用ISPC加速计算_mandelbrot_图像，并和顺序计算_mandelbrot_图像的时间做比较。ISPC是位高性能SIMD编程设计的编译器，ISPC程序的多个程序实例是总是在CPU的SIMD执行单元上并行执行。ISPC文件会编译成.o文件和.h文件，c文件在**#include**对应的.h文件后，可以直接调用ISPC文件中编写的函数。
+​	使用ISPC加速计算_mandelbrot_图像，并和顺序计算_mandelbrot_图像的时间做比较。ISPC是为高性能SIMD编程设计的编译器，ISPC程序的多个程序实例是总是在CPU的SIMD执行单元上并行执行。ISPC文件会编译成.o文件和.h文件，c文件在**include**对应的.h文件后，可以直接调用ISPC文件中编写的函数。
 
 ```C++
 export void mandelbrot_ispc(uniform float x0, uniform float y0, 
@@ -365,13 +365,13 @@ void sqrtSerial(int N,
 
 
 
-所以可以发现，修改算法不同的输入，当使原顺序算法的计算速度最快时，使用**ISPC**和**ISPC TASK**对程序的优化效果越不明显。另外可以推出SIMD和多任务多核进行并行计算，都希望各个任务的平均计算量基本一致，当并行的多个任务计算时间不一致时，最终的计算时间会被计算时间最久的那个任务严重拖慢（所以两千万个随机数的计算时间会很慢）。
+​	所以可以发现，修改算法不同的输入，当使原顺序算法的计算速度最快时，使用**ISPC**和**ISPC TASK**对程序的优化效果越不明显。另外可以推出SIMD和多任务多核进行并行计算，都希望各个任务的平均计算量基本一致，当并行的多个任务计算时间不一致时，最终的计算时间会被计算时间最久的那个任务严重拖慢（所以两千万个随机数的计算时间会很慢）。
 
 
 
 ## **Program 5: BLAS `saxpy`**
 
-​		加速saxpy,即 计算`result = scale*X+Y`，编译运行使用了**ISPC**和**ISPC_TASK**机制的程序
+​		加速saxpy,即 计算`result = scale*X+Y`，编译运行使用了**ISPC**和**ISPC_TASK**机制的程序。
 
 ![b16747f433a84797bbb5eb391df021f](/graphs/b16747f433a84797bbb5eb391df021f.png)
 
@@ -398,7 +398,7 @@ task void saxpy_ispc_task(uniform int N,
 
 ​	发现使用了**ISPC_TASK**和仅仅使用**IPSC**相比提升很小，没有达到预期的性能。影响性能的原因有很多。例如Program5和Program4相比，计算时用到result,X,Y三个数组，虽然计算量更小，但是更频繁地读写内存严重影响性能。**main.cpp**中计算带宽的语句也暗示了本程序的性能瓶颈在于内存带宽的限制，不是开多线程就能解决的。
 
-​	使用**ISPC_TASK**计算saxpy的程序中一共launch了64个task, 如果真的有64个线程，频繁切换线程上下文也会造成开销，并且也会弄脏缓存，造成更多的cache miss，也会影响性能，改为4个线程以后性能反而有略微的提升。而且task是比thread更高层次的抽象，ISPC编译器不一定真的安排了64个线程并行计算。
+​	使用**ISPC_TASK**计算saxpy，该程序中一共launch了64个task, 如果真的有64个线程，频繁切换线程上下文也会造成开销，并且也会弄脏缓存，造成更多的cache miss，影响性能，改为4个线程以后性能反而有略微的提升。而且task是比thread更高层次的抽象，ISPC编译器不一定真的安排了64个线程并行计算，可能看task太多就设成同步任务了。
 
 ​	 关于**TOTAL_BYTES = 4 * N * sizeof(float)**，因为写result数组的时候需要对应的内存块更新到cache中，这里有1次读内存，1次写内存，读X,Y数组的时候又有2次读取内存，所以总共和内存交互的字节数是**4 * N * sizeof(float)**;
 
