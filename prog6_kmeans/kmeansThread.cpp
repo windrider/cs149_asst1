@@ -68,7 +68,7 @@ double dist(double *x, double *y, int nDim) {
 /**
  * Assigns each data point to its "closest" cluster centroid.
  */
-void computeAssignments(WorkerArgs *const args,double* minDist, std::mutex& mtx) {
+void computeAssignments(WorkerArgs *const args,double* myDist, std::mutex& mtx) {
   //double *minDist = new double[args->M];
   // Initialize arrays
   int k=args->threadId;
@@ -83,14 +83,16 @@ void computeAssignments(WorkerArgs *const args,double* minDist, std::mutex& mtx)
   // Assign datapoints to closest centroids
   //for (int k = args->start; k < args->end; k++) {
     for (int m = 0; m < args->M; m++) {
-      double d = dist(&args->data[m * args->N],
+      myDist[k*m]= dist(&args->data[m * args->N],
                       &args->clusterCentroids[k * args->N], args->N);
-      mtx.lock();
+      /*                
+      mtx.lock();     
       if (d < minDist[m]) {
         minDist[m] = d;
         args->clusterAssignments[m] = k;
       }
       mtx.unlock();
+      */
     }
   //}
 
@@ -163,14 +165,16 @@ void computeCost(WorkerArgs *const args) {
 void computeAssignmentsThreads(WorkerArgs &args){
   std::thread workThread[maxThreads];
   WorkerArgs threadArg[maxThreads];
-  double *minDist=new double[args.M];
-  int step=args.M/args.numThreads;
+  double *myDist=new double[args.K*args.M];
+  //int step=args.M/args.numThreads;
   std::mutex mtx;
 
+  /*
   for (int m = 0; m < args.M; m++) {
     minDist[m] = 1e30;
     args.clusterAssignments[m] = -1;
   }
+  */
   for(int i=0;i<args.K;i++){
     threadArg[i]=args;
     threadArg[i].threadId=i;
@@ -178,12 +182,24 @@ void computeAssignmentsThreads(WorkerArgs &args){
     //threadArg[i].mend= (i==args.numThreads-1?args.M:(i+1)*step);
   }
   for(int i=0;i<args.K;i++){
-    workThread[i]=std::thread(computeAssignments,&threadArg[i],minDist,ref(mtx));
+    workThread[i]=std::thread(computeAssignments,&threadArg[i],myDist,ref(mtx));
   }
   for(int i=0;i<args.K;i++){
     workThread[i].join();
   }
-  free(minDist);
+  for(int i=0;i<args.M;++i){
+    double mymin=myDist[i];
+    int k=0;
+    for(int j=1;j<args.K;++j){
+      if(myDist[j*i]<mymin){
+        mymin=myDist[j*i];
+        k=j;
+      }
+    }
+    args.clusterAssignments[i] = k;
+
+  }
+  free(myDist);
   return ;
 }
 

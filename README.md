@@ -503,3 +503,43 @@ void computeAssignmentsThreads (WorkerArgs &args){
 ![c8a6b81132822ecf83e7074c56f618e](/graphs/c8a6b81132822ecf83e7074c56f618e.png)
 
 总耗时缩短到8s，和之前的10s相比优化效果并不明显，一个原因是最后只有3个聚类中心，线程数不够多，不能完全发挥多线程的优势。另外频繁地加锁解锁导致线程阻塞，影响性能。
+
+
+
+​        对此方法进行改进，采用空间换时间的思想，创建一个double myDist[K * M]，存每个点到每个聚类中心的距离,每个线程同样对应一个单独的聚类中心。即，对于线程k，其计算的点m到聚类中心k的距离存在myDist[k * m]处，这样不同的线程对应了不同的内存空间，所以不需要加锁。所有线程都计算完毕后 ，再比较出每个点最近的聚类中心。
+
+```c++
+void computeAssignmentsThreads(WorkerArgs &args){
+  std::thread workThread[maxThreads];
+  WorkerArgs threadArg[maxThreads];
+  double *myDist=new double[args.K*args.M];
+
+  for(int i=0;i<args.K;i++){
+    threadArg[i]=args;
+    threadArg[i].threadId=i;
+  }
+  for(int i=0;i<args.K;i++){
+    workThread[i]=std::thread(computeAssignments,&threadArg[i],myDist);
+  }
+  for(int i=0;i<args.K;i++){
+    workThread[i].join();
+  }
+  for(int i=0;i<args.M;++i){
+    double mymin=myDist[i];
+    int k=0;
+    for(int j=1;j<args.K;++j){
+      if(myDist[j*i]<mymin){
+        mymin=myDist[j*i];
+        k=j;
+      }
+    }
+    args.clusterAssignments[i] = k;
+  }
+  free(myDist);
+  return ;
+}
+```
+
+![030216179e9753690b9a139c4ca66f5](/graphs/030216179e9753690b9a139c4ca66f5.png)
+
+​	总耗时缩短到3秒，效果非常显著。
